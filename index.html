@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Marine Pollution Monitoring Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+
+<body>
+
+
+<!-- ROLE SELECTION SCREEN -->
+<div id="roleScreen" class="role-screen">
+
+    <h2>Marine Pollution Authority Access</h2>
+
+    <select id="authorityRole">
+
+    <option value="">Select your role</option>
+
+    <option value="authority">National or Local Authority</option>
+
+    <option value="resource">Marine Conservationist</option>
+
+    <option value="emergency">Emergency Manager</option>
+
+    <option value="fishing">Fishing Industry</option>
+
+    <option value="media">Media</option>
+
+    <option value="community">Community Residents</option>
+
+    <option value="public">Common Public</option>
+
+</select>
+
+    <button onclick="enterDashboard()">Enter Dashboard</button>
+
+</div>
+
+
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none;">
+
+    
+    <header>
+
+        <h1>Marine Pollution Monitoring Dashboard</h1>
+        <div id="dateTime"></div>
+
+    </header>
+
+
+    <div class="container">
+
+        
+        <aside class="sidebar">
+
+            <h3>Pollution Types</h3>
+            <button class="filter-btn">Oil Spill</button>
+            <button class="filter-btn">Plastic Waste</button>
+            <button class="filter-btn">Chemical Pollution</button>
+            <button class="filter-btn">Algal Bloom</button>
+
+            <h3>Controls</h3>
+            <button id="toggleAlert">Toggle Alert</button>
+
+<h3>Awareness</h3>
+
+<button id="wildlifeBtn" class="filter-btn">
+    Wildlife Impact
+</button>
+
+        </aside>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Summary Cards -->
+            <div class="cards">
+
+                <div class="card">
+                    <h4>Total Incidents</h4>
+                    <p>24</p>
+                </div>
+
+                <div class="card">
+                    <h4>High Risk Zones</h4>
+                    <p>5</p>
+                </div>
+
+                <div class="card">
+                    <h4>Affected Area (km²)</h4>
+                    <p>320</p>
+                </div>
+
+            </div>
+
+
+           
+            <div id="map"></div>
+
+
+            <!-- Charts -->
+            <div class="charts">
+
+                <h2>Pollution Trends</h2>
+
+                <div class="chart-box">
+                    <div class="bar" style="height:60%"></div>
+                    <div class="bar" style="height:30%"></div>
+                    <div class="bar" style="height:80%"></div>
+                    <div class="bar" style="height:50%"></div>
+                </div>
+
+            </div>
+
+<div class="authority-panel">
+
+    <h3>Report Pollution Incident</h3>
+
+    <button class="action-btn">
+        Report New Incident
+    </button>
+
+    <p class="small-text">
+        Help authorities by reporting pollution sightings.
+    </p>
+
+</div>
+
+
+
+
+            <!-- ACTION PLAN -->
+            <div class="authority-panel">
+
+                <h3>Recommended Action Plan</h3>
+                <ul id="actionPlan"></ul>
+
+            </div>
+
+<div id="wildlifePanel" class="authority-panel" style="display:none;">
+
+    <h3>Know How Wildlife Is Affected</h3>
+
+    <p>
+    Marine pollution can poison fish, kill sea turtles,
+    and destroy coral reef ecosystems.
+    </p>
+
+    <ul>
+
+        <li>
+            <a href="https://www.noaa.gov/education/resource-collections/ocean-coasts/oil-spills"
+            target="_blank">
+            Oil spill effects on marine life
+            </a>
+        </li>
+
+        <li>
+            <a href="https://www.worldwildlife.org/threats/ocean-pollution"
+            target="_blank">
+            WWF ocean conservation information
+            </a>
+        </li>
+
+        <li>
+            <a href="https://www.unep.org/explore-topics/oceans-seas"
+            target="_blank">
+            UN ocean protection initiatives
+            </a>
+        </li>
+
+    </ul>
+
+</div>
+        </main>
+    </div>
+
+
+    <!-- Alert Panel -->
+    <div id="alertPanel" class="alert-panel">
+        High Severity Oil Spill Detected!
+    </div>
+
+
+</div>
+
+
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
