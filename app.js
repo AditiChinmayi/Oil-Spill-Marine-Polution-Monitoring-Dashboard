@@ -34,6 +34,52 @@ const AWS_CONFIG = {
   }
 };
 
+// Convert the AWS API's DynamoDB item shape into the dashboard's display shape.
+function fromBackendIncident(item) {
+  const rawStatus = String(item.status || "REPORTED").toUpperCase();
+  const status = rawStatus === "REPORTED" ? "ACTIVE"
+    : rawStatus === "UNDER_INVESTIGATION" ? "CONTAINED"
+    : rawStatus;
+  const created = item.createdAt || item.date || new Date().toISOString();
+  return {
+    id: String(item.incidentId || item.id || ""),
+    title: item.title || item.location || "Marine pollution incident",
+    location: item.location || "Unknown location",
+    lat: Number(item.latitude ?? item.lat ?? 10.2),
+    lng: Number(item.longitude ?? item.lng ?? 76.2),
+    type: item.type || "Oil Spill",
+    sev: ({ LOW:"Low", MEDIUM:"Medium", HIGH:"High", CRITICAL:"High" })[String(item.severity || item.sev || "MEDIUM").toUpperCase()] || "Medium",
+    status,
+    backendStatus: rawStatus,
+    date: String(created).slice(0, 10),
+    area: Number(item.affectedAreaKm2 ?? item.area ?? 0),
+    desc: item.description || item.desc || "",
+    dist: item.location ? String(item.location).split(/[ ,]/)[0] : "Kerala Coast",
+    source: "backend",
+    isLocalDemo: false
+  };
+}
+
+function toBackendStatus(status) {
+  const value = String(status || "").toUpperCase();
+  if (value === "ACTIVE" || value === "REPORTED") return "REPORTED";
+  if (value === "CONTAINED" || value === "UNDER_INVESTIGATION") return "UNDER_INVESTIGATION";
+  return value === "RESOLVED" ? "RESOLVED" : "REPORTED";
+}
+
+async function loadBackendIncidents() {
+  if (!AWS_CONFIG.isConfigured) return false;
+  const response = await fetch(AWS_CONFIG.endpoint, {
+    method: "GET",
+    headers: { "Accept": "application/json" }
+  });
+  if (!response.ok) throw new Error(`AWS GET returned HTTP ${response.status}`);
+  const payload = await response.json();
+  const items = Array.isArray(payload) ? payload : (Array.isArray(payload.items) ? payload.items : []);
+  INC.splice(0, INC.length, ...items.map(fromBackendIncident).filter(i => i.id));
+  return true;
+}
+
 const SH = {
   all: null,
   fishermen: {
@@ -169,18 +215,31 @@ let view = "all", filt = "all", mkrs = [], map, osmL, satL, sat = false, tblOpen
 let isSubmitting = false, isMapPicking = false;
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   clock();
   initMap();
   initCharts();
-  buildAlerts();
   buildBeach();
-  buildResp();
   buildHealth();
   bind();
+
+  if (AWS_CONFIG.isConfigured) {
+    try {
+      await loadBackendIncidents();
+    } catch (error) {
+      console.error("Could not load incidents from AWS:", error);
+      const label = document.getElementById("stat-source-label");
+      if (label) label.textContent = "AWS configured — unable to load live records";
+      showLoadError(error.message);
+    }
+  }
+
+  buildAlerts();
+  buildResp();
   switchView("all");
   updateDashboardData();
-  document.getElementById("last-upd").textContent =
+  const updated = document.getElementById("last-upd");
+  if (updated) updated.textContent =
     new Date().toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" });
 });
 
@@ -363,6 +422,19 @@ function mkPop(inc) {
     <div class="pop-row"><span class="pop-k">Area</span><span class="pop-v">${inc.area} km²</span></div>
     <div class="pop-row"><span class="pop-k">Date</span><span class="pop-v">${fmt(inc.date)}</span></div>
     <div class="pop-note">${inc.desc}</div>${sh}
+    ${AWS_CONFIG.isConfigured && inc.source === "backend" ? `
+      <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--line)">
+        <label style="display:block;font-size:9px;color:var(--txt2);margin-bottom:4px">Update incident status</label>
+        <div style="display:flex;gap:5px">
+          <select id="status-${inc.id}" style="min-width:0;flex:1;background:var(--ocean);color:var(--txt);border:1px solid var(--line);padding:4px;font-size:10px">
+            <option value="REPORTED" ${inc.backendStatus === "REPORTED" ? "selected" : ""}>Reported</option>
+            <option value="UNDER_INVESTIGATION" ${inc.backendStatus === "UNDER_INVESTIGATION" ? "selected" : ""}>Under investigation</option>
+            <option value="RESOLVED" ${inc.backendStatus === "RESOLVED" ? "selected" : ""}>Resolved</option>
+          </select>
+          <button type="button" onclick="updateIncidentStatus('${inc.id}', document.getElementById('status-${inc.id}').value)" style="background:var(--safe-d);color:var(--safe);border:1px solid var(--safe);padding:4px 7px;font-size:9px;cursor:pointer">Save</button>
+        </div>
+        <div id="status-msg-${inc.id}" style="font-size:9px;margin-top:4px"></div>
+      </div>` : ""}
   </div>`;
 }
 
@@ -720,7 +792,7 @@ function buildBeach() {
 
 function buildResp() {
   document.getElementById("resp-list").innerHTML = INC.map(i => {
-    const st = RS[i.id] || (i.status ? i.status.toLowerCase() : "active");
+    const st = i.status ? String(i.status).toLowerCase() : (RS[i.id] || "active");
     const d  = RD[i.id] || 2;
     return `<div class="rrow">
       <span class="rid">${i.id}</span>
@@ -1001,14 +1073,15 @@ async function handleFormSubmit(e) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-title: newIncident.title,
-description: newIncident.desc,
-location: newIncident.location,
-latitude: newIncident.lat,
-longitude: newIncident.lng,
-severity: String(newIncident.sev).toUpperCase(),
-status: String(newIncident.status).toUpperCase(),
-affectedAreaKm2: newIncident.area
+  title: newIncident.title,
+  description: newIncident.desc,
+  location: newIncident.location,
+  latitude: newIncident.lat,
+  longitude: newIncident.lng,
+  type: newIncident.type,
+  severity: String(newIncident.sev).toUpperCase(),
+  status: toBackendStatus(newIncident.status),
+  affectedAreaKm2: newIncident.area
 })
       });
 
@@ -1017,7 +1090,12 @@ affectedAreaKm2: newIncident.area
       }
 
       const backendData = await res.json().catch(() => ({}));
-      if (backendData && backendData.id) newIncident.id = backendData.id;
+      if (backendData && backendData.item) {
+        const saved = fromBackendIncident(backendData.item);
+        Object.assign(newIncident, saved);
+      } else if (backendData && backendData.id) {
+        newIncident.id = backendData.id;
+      }
 
       INC.unshift(newIncident);
       updateDashboardData();
