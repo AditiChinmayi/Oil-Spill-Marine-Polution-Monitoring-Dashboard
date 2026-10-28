@@ -33,6 +33,12 @@
       <button class="vtab"        data-view="residents"  title="Residents"><i class="fas fa-house-flood-water"></i></button>
     </div>
 
+    <div class="lhud-report-wrap">
+      <button class="lhud-report-btn" id="btn-report-left" title="Open incident reporting form">
+        <i class="fas fa-circle-plus"></i><span>REPORT INCIDENT</span>
+      </button>
+    </div>
+
     <div class="lhud-label">Incident Type</div>
     <button class="frow on" data-type="all"><i class="fas fa-globe"></i><span>All Incidents</span><span class="fnum" id="c-all">15</span></button>
     <button class="frow" data-type="Oil Spill"><i class="fas fa-oil-can"></i><span>Oil Spill</span><span class="fnum" id="c-oil">6</span></button>
@@ -40,23 +46,33 @@
     <button class="frow" data-type="Chemical Pollution"><i class="fas fa-flask"></i><span>Chemical</span><span class="fnum" id="c-che">3</span></button>
     <button class="frow" data-type="Algal Bloom"><i class="fas fa-leaf"></i><span>Algal Bloom</span><span class="fnum" id="c-alg">2</span></button>
 
-    <div class="lhud-label" style="margin-top:2px">Statistics</div>
+    <div class="lhud-label" style="margin-top:2px">
+      <span>Statistics</span>
+      <span class="source-tag" id="data-source-tag">DEMO</span>
+    </div>
     <div class="stat-block">
       <div class="stat-item">
         <span class="stat-lbl">Total Incidents</span>
         <span class="stat-val" id="s-tot">15</span>
       </div>
       <div class="stat-item">
-        <span class="stat-lbl">High Severity</span>
+        <span class="stat-lbl">High / Critical</span>
         <span class="stat-val red" id="s-hi">6</span>
       </div>
       <div class="stat-item">
-        <span class="stat-lbl">Area Affected</span>
-        <span class="stat-val amb" id="s-area">288<span class="stat-unit">km²</span></span>
+        <span class="stat-lbl">Under Investigation</span>
+        <span class="stat-val amb" id="s-inv">3</span>
       </div>
       <div class="stat-item">
-        <span class="stat-lbl">Oil Spills</span>
-        <span class="stat-val grn" id="s-oil">6</span>
+        <span class="stat-lbl">Resolved</span>
+        <span class="stat-val grn" id="s-res">8</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-lbl">Area Affected</span>
+        <span class="stat-val" id="s-area">288<span class="stat-unit">km²</span></span>
+      </div>
+      <div class="stat-source-meta" id="stat-source-label">
+        <i class="fas fa-circle-info"></i> Fallback sample dataset
       </div>
     </div>
 
@@ -149,12 +165,12 @@
         <div class="bs-lbl">Critical</div>
       </div>
       <div class="bs-stat amb">
-        <div class="bs-val" id="b-area">288<span class="u">km²</span></div>
-        <div class="bs-lbl">Affected</div>
+        <div class="bs-val" id="b-inv">3</div>
+        <div class="bs-lbl">Investigating</div>
       </div>
       <div class="bs-stat grn">
-        <div class="bs-val" style="color:var(--safe)">590<span class="u">km</span></div>
-        <div class="bs-lbl">Monitored</div>
+        <div class="bs-val" id="b-res">8</div>
+        <div class="bs-lbl">Resolved</div>
       </div>
     </div>
 
@@ -164,6 +180,7 @@
     </div>
 
     <div class="bs-controls">
+      <button class="bs-report-btn" id="btn-report" title="Report a new marine pollution incident"><i class="fas fa-plus-circle"></i>REPORT</button>
       <button class="bs-tbl-btn" id="tbl-btn"><i class="fas fa-table-list"></i>LOG</button>
       <button class="bs-btn" id="btn-fit"  title="Reset map view"><i class="fas fa-compress-arrows-alt"></i></button>
       <button class="bs-btn" id="btn-sat"  title="Toggle satellite layer"><i class="fas fa-satellite"></i></button>
@@ -192,18 +209,51 @@
       <span class="drw-title"><i class="fas fa-table-list"></i>Incident Log</span>
       <span class="drw-meta" id="drw-meta">15 records</span>
     </div>
-    <div class="drw-search">
-      <i class="fas fa-magnifying-glass"></i>
-      <input class="drw-inp" id="srch" type="text" placeholder="search location, type, description…"/>
+
+    <!-- Multi-criteria filter bar -->
+    <div class="drw-filter-bar">
+      <div class="drw-search">
+        <i class="fas fa-magnifying-glass"></i>
+        <input class="drw-inp" id="srch" type="text" placeholder="search title, location, type, id…"/>
+      </div>
+      <div class="drw-filter-group">
+        <label for="filter-sev" class="drw-filter-lbl">Severity</label>
+        <select id="filter-sev" class="drw-select">
+          <option value="all">All</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+      <div class="drw-filter-group">
+        <label for="filter-status" class="drw-filter-lbl">Status</label>
+        <select id="filter-status" class="drw-select">
+          <option value="all">All</option>
+          <option value="REPORTED">Reported</option>
+          <option value="UNDER_INVESTIGATION">Under Investigation</option>
+          <option value="ACTIVE">Active</option>
+          <option value="CONTAINED">Contained</option>
+          <option value="RESOLVED">Resolved</option>
+        </select>
+      </div>
+      <div class="drw-filter-group">
+        <label for="filter-date" class="drw-filter-lbl">Month</label>
+        <input type="month" id="filter-date" class="drw-date-inp" title="Filter by year and month"/>
+      </div>
+      <button class="drw-reset-btn" id="btn-reset-filters" title="Reset all search and filter criteria">
+        <i class="fas fa-rotate-left"></i> Reset
+      </button>
     </div>
+
     <div class="drw-scroll">
       <table>
         <thead>
           <tr>
-            <th>ID</th>
+            <th>ID / Title</th>
             <th>Location</th>
             <th>Type</th>
-            <th>Sev</th>
+            <th>Severity</th>
+            <th>Status</th>
             <th>Area</th>
             <th>Date</th>
             <th id="imp-th" style="display:none">Impact</th>
@@ -222,6 +272,153 @@
     </div>
     <div class="ap-list" id="ap-list"></div>
   </div><!-- /ap -->
+
+  <!-- MAP COORDINATE PICKER BANNER -->
+  <div id="map-pick-banner" class="map-pick-banner hidden">
+    <i class="fas fa-crosshairs"></i>
+    <span>Click anywhere on the map to set incident coordinates</span>
+    <button type="button" id="btn-cancel-map-pick" style="background:none;border:1px solid var(--sh);color:var(--sh);margin-left:12px;padding:3px 10px;cursor:pointer;font-family:var(--F2);font-size:10px;text-transform:uppercase">Cancel</button>
+  </div>
+
+  <!-- INCIDENT REPORTING MODAL -->
+  <div id="report-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-ttl">
+    <div class="modal-dialog">
+      <div class="modal-hdr">
+        <div class="modal-ttl" id="modal-ttl">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span>Report Marine Pollution Incident</span>
+        </div>
+        <button class="modal-close" id="report-modal-close" title="Close" aria-label="Close modal">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-feedback hidden" id="rep-feedback"></div>
+
+        <form id="incident-form" novalidate>
+          <!-- Title -->
+          <div class="form-group">
+            <label for="rep-title" class="form-lbl">
+              Incident Title <span class="req">*</span>
+            </label>
+            <input type="text" id="rep-title" class="form-inp" placeholder="e.g., Heavy fuel oil slick drifting towards harbour" required maxlength="120"/>
+            <span class="field-error" id="err-rep-title"></span>
+          </div>
+
+          <!-- Type & Location in 2 cols -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="rep-type" class="form-lbl">
+                Pollution Type <span class="req">*</span>
+              </label>
+              <select id="rep-type" class="form-select" required>
+                <option value="Oil Spill" selected>Oil Spill</option>
+                <option value="Plastic Waste">Plastic Waste</option>
+                <option value="Chemical Pollution">Chemical Pollution</option>
+                <option value="Algal Bloom">Algal Bloom</option>
+              </select>
+              <span class="field-error" id="err-rep-type"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="rep-location" class="form-lbl">
+                Location Name <span class="req">*</span>
+              </label>
+              <input type="text" id="rep-location" class="form-inp" placeholder="e.g., Vizhinjam Coast" required maxlength="80"/>
+              <span class="field-error" id="err-rep-location"></span>
+            </div>
+          </div>
+
+          <!-- Latitude & Longitude with Map Picker -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="rep-lat" class="form-lbl">
+                Latitude (-90 to 90) <span class="req">*</span>
+              </label>
+              <input type="number" id="rep-lat" class="form-inp" placeholder="e.g., 8.3824" step="any" min="-90" max="90" required/>
+              <span class="field-error" id="err-rep-lat"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="rep-lng" class="form-lbl">
+                Longitude (-180 to 180) <span class="req">*</span>
+              </label>
+              <input type="number" id="rep-lng" class="form-inp" placeholder="e.g., 76.9942" step="any" min="-180" max="180" required/>
+              <span class="field-error" id="err-rep-lng"></span>
+            </div>
+          </div>
+
+          <!-- Crosshair picker helper -->
+          <div class="coord-picker-row">
+            <button type="button" class="coord-pick-btn" id="btn-pick-map">
+              <i class="fas fa-crosshairs"></i> Pick Coordinates from Map
+            </button>
+            <span class="coord-hint" id="coord-pick-hint">Click button, then click any map location</span>
+          </div>
+
+          <!-- Severity, Status, Affected Area in 3 cols -->
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="rep-sev" class="form-lbl">
+                Severity <span class="req">*</span>
+              </label>
+              <select id="rep-sev" class="form-select" required>
+                <option value="High">High</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Low">Low</option>
+              </select>
+              <span class="field-error" id="err-rep-sev"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="rep-status" class="form-lbl">
+                Status <span class="req">*</span>
+              </label>
+              <select id="rep-status" class="form-select" required>
+                <option value="REPORTED" selected>REPORTED</option>
+                <option value="UNDER_INVESTIGATION">UNDER_INVESTIGATION</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="CONTAINED">CONTAINED</option>
+                <option value="RESOLVED">RESOLVED</option>
+              </select>
+              <span class="field-error" id="err-rep-status"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="rep-area" class="form-lbl">
+                Area (km²) <span class="req">*</span>
+              </label>
+              <input type="number" id="rep-area" class="form-inp" placeholder="e.g., 18" min="0" step="0.1" required/>
+              <span class="field-error" id="err-rep-area"></span>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="rep-desc" class="form-lbl">
+              Incident Description & Notes <span class="req">*</span>
+            </label>
+            <textarea id="rep-desc" class="form-textarea" rows="3" placeholder="Provide environmental impact context, source vessel/pipeline identification, slick thickness, and urgency details…" required maxlength="500"></textarea>
+            <span class="field-error" id="err-rep-desc"></span>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <div class="backend-notice" id="modal-backend-status">
+              <i class="fas fa-circle-info"></i> Local Demo Session
+            </div>
+            <div class="footer-btns">
+              <button type="button" class="btn-cancel" id="btn-cancel-report">Cancel</button>
+              <button type="submit" class="btn-submit" id="btn-submit-report">
+                <i class="fas fa-paper-plane"></i> <span>Submit Report</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- Leaflet JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
