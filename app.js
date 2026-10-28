@@ -67,6 +67,18 @@ function toBackendStatus(status) {
   return value === "RESOLVED" ? "RESOLVED" : "REPORTED";
 }
 
+// Display a visible, non-blocking message when the AWS API cannot be reached.
+function showLoadError(message) {
+  const existing = document.getElementById("aws-load-error");
+  if (existing) existing.remove();
+  const banner = document.createElement("div");
+  banner.id = "aws-load-error";
+  banner.setAttribute("role", "alert");
+  banner.style.cssText = "position:relative;z-index:1000;margin:10px;padding:10px 14px;border:1px solid #d97706;border-radius:8px;background:#fff7ed;color:#9a3412;font:13px/1.5 system-ui,sans-serif;";
+  banner.textContent = "Could not load live AWS incidents. Check API Gateway CORS settings and the browser console. " + String(message || "");
+  (document.querySelector("main") || document.body).prepend(banner);
+}
+
 async function loadBackendIncidents() {
   if (!AWS_CONFIG.isConfigured) return false;
   const response = await fetch(AWS_CONFIG.endpoint, {
