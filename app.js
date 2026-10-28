@@ -1000,7 +1000,16 @@ async function handleFormSubmit(e) {
       const res = await fetch(AWS_CONFIG.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newIncident)
+        body: JSON.stringify({
+title: newIncident.title,
+description: newIncident.desc,
+location: newIncident.location,
+latitude: newIncident.lat,
+longitude: newIncident.lng,
+severity: String(newIncident.sev).toUpperCase(),
+status: String(newIncident.status).toUpperCase(),
+affectedAreaKm2: newIncident.area
+})
       });
 
       if (!res.ok) {
