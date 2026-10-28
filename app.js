@@ -157,12 +157,12 @@ document.addEventListener("DOMContentLoaded", () => {
   clock();
   initMap();
   initCharts();
-  buildTable(INC);
   buildAlerts();
   buildBeach();
   buildResp();
   buildHealth();
   bind();
+  switchView("all");
   animCnt(INC);
   document.getElementById("last-upd").textContent =
     new Date().toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" });
@@ -239,8 +239,7 @@ function initMap() {
     }
   );
 
-  // Add pollution incident markers
-  addMkrs(INC);
+  // Pollution incident markers are initialized via switchView("all") below
 
   // Reset map view
   document.getElementById("btn-fit").onclick = () => {
@@ -358,7 +357,7 @@ function switchView(v) {
   const show = (id, yn) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.display = yn ? "flex" : "none";
+    el.style.display = yn ? (id === "rh-charts" ? "block" : "flex") : "none";
     el.classList.toggle("hidden", !yn);
   };
 
@@ -383,10 +382,10 @@ function applyFilter(type) {
   buildTable(fd);
   animCnt(fd);
   document.getElementById("c-all").textContent = INC.length;
-  document.getElementById("c-oil").textContent = fd.filter(i => i.type === "Oil Spill").length;
-  document.getElementById("c-pla").textContent = fd.filter(i => i.type === "Plastic Waste").length;
-  document.getElementById("c-che").textContent = fd.filter(i => i.type === "Chemical Pollution").length;
-  document.getElementById("c-alg").textContent = fd.filter(i => i.type === "Algal Bloom").length;
+  document.getElementById("c-oil").textContent = INC.filter(i => i.type === "Oil Spill").length;
+  document.getElementById("c-pla").textContent = INC.filter(i => i.type === "Plastic Waste").length;
+  document.getElementById("c-che").textContent = INC.filter(i => i.type === "Chemical Pollution").length;
+  document.getElementById("c-alg").textContent = INC.filter(i => i.type === "Algal Bloom").length;
 }
 
 // ── TABLE ─────────────────────────────────────────────────────────────────────
