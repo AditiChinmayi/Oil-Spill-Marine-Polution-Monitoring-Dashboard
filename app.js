@@ -212,23 +212,55 @@ function animCnt(data) {
 }
 
 // ── MAP ───────────────────────────────────────────────────────────────────────
+
 function initMap() {
-  map  = L.map("map", { center:KC, zoom:KZ, zoomControl:true });
+  map = L.map("map", {
+    center: KC,
+    zoom: KZ,
+    zoomControl: true
+  });
+
+  // OpenStreetMap base layer — no CARTO API key required
   osmL = L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    { attribution:"© CARTO", maxZoom:19 }
+    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }
   ).addTo(map);
+
+  // Satellite layer
   satL = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { attribution:"© Esri", maxZoom:19 }
+    {
+      attribution: "Tiles &copy; Esri",
+      maxZoom: 19
+    }
   );
+
+  // Add pollution incident markers
   addMkrs(INC);
-  document.getElementById("btn-fit").onclick = () => map.setView(KC, KZ);
+
+  // Reset map view
+  document.getElementById("btn-fit").onclick = () => {
+    map.setView(KC, KZ);
+  };
+
+  // Toggle between street map and satellite imagery
   document.getElementById("btn-sat").onclick = () => {
-    if (sat) { map.removeLayer(satL); osmL.addTo(map); }
-    else     { map.removeLayer(osmL); satL.addTo(map); }
+    if (sat) {
+      map.removeLayer(satL);
+      osmL.addTo(map);
+    } else {
+      map.removeLayer(osmL);
+      satL.addTo(map);
+    }
+
     sat = !sat;
-    document.getElementById("btn-sat").style.color = sat ? "var(--sh)" : "";
+
+    document.getElementById("btn-sat").style.color =
+      sat ? "var(--sh)" : "";
   };
 }
 
